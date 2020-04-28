@@ -40,4 +40,4 @@ runSupervisor() {
 
 # Run supervisor
 mkdir -p "${HASSIO_DATA}"
-([ "${HASSIO_IMAGE_ID}" = "${HASSIO_CONTAINER_ID}" ] && docker start --attach hassio_supervisor) || runSupervisor
+([ "${HASSIO_IMAGE_ID}" = "${HASSIO_CONTAINER_ID}" ] && docker start hassio_supervisor) || runSupervisor
