@@ -128,18 +128,18 @@ docker tag "$HASSIO_DOCKER:$HASSIO_VERSION" "$HASSIO_DOCKER:latest" > /dev/null
 # Install Hass.io Supervisor
 echo "[Info] Install supervisor startup scripts"
 curl -sL ${URL_BIN_HASSIO} > "/opt/sbin/hassio-supervisor"
-curl -sL ${URL_SERVICE_HASSIO} > "${SYSCONFDIR}/init.d/Shassio.sh"
+curl -sL ${URL_SERVICE_HASSIO} > "${SYSCONFDIR}/init.d/S99hassio.sh"
 
 sed -i "s,%%HASSIO_CONFIG%%,${CONFIG},g" /opt/sbin/hassio-supervisor
 sed -i -e "s,%%DOCKER_BINARY%%,${DOCKER_BINARY},g" \
        -e "s,%%HASSIO_BINARY%%,${PREFIX}/sbin/hassio-supervisor,g" \
-       "${SYSCONFDIR}/init.d/Shassio.sh"
+       "${SYSCONFDIR}/init.d/S99hassio.sh"
 
 chmod a+x "/opt/sbin/hassio-supervisor"
-chmod a+x "${SYSCONFDIR}/init.d/Shassio.sh"
+chmod a+x "${SYSCONFDIR}/init.d/S99hassio.sh"
 
 echo "[Info] Run Hass.io"
-command ${SYSCONFDIR}/init.d/Shassio.sh start
+command ${SYSCONFDIR}/init.d/S99hassio.sh start
 
 ##
 # Setup CLI
