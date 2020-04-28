@@ -9,11 +9,10 @@ DOCKER_BINARY=/sbin/docker
 DOCKER_REPO=homeassistant
 URL_VERSION="https://version.home-assistant.io/stable.json"
 URL_HA="https://raw.githubusercontent.com/home-assistant/supervised-installer/master/files/ha"
-URL_BIN_HASSIO="https://raw.githubusercontent.com/home-assistant/supervised-installer/master/files/hassio-supervisor"
-URL_SERVICE_HASSIO="https://gist.githubusercontent.com/derwasp/38a0b53d0d3fc2f95925f3a0dae817d3/raw/hassio_service.sh"
+URL_BIN_HASSIO="https://raw.githubusercontent.com/derwasp/home-assistant-supervised-installer-pr2100/master/hassio-supervisor"
+URL_SERVICE_HASSIO="https://raw.githubusercontent.com/derwasp/home-assistant-supervised-installer-pr2100/master/hassio_service.sh"
 
 # Check env
-command -v systemctl > /dev/null 2>&1 || error "Only systemd is supported!"
 command -v docker > /dev/null 2>&1 || error "Please install docker first"
 command -v jq > /dev/null 2>&1 || error "Please install jq first"
 command -v curl > /dev/null 2>&1 || error "Please install curl first"
