@@ -144,5 +144,5 @@ command ${SYSCONFDIR}/init.d/Shassio.sh start
 ##
 # Setup CLI
 echo "[Info] Install cli 'ha'"
-curl -sL ${URL_HA} > "${PREFIX}/bin/ha"
-chmod a+x "${PREFIX}/bin/ha"
+curl -sL ${URL_HA} > "/opt/sbin/ha"
+chmod a+x "/opt/sbin/ha"
