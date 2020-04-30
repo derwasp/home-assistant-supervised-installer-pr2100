@@ -2,14 +2,7 @@
 
 export LANG=en_US.UTF8
 
-# Package
-PACKAGE="hassio"
 DNAME="hassio"
-
-# Others
-PKG_DIR="/shares/Volume_1/Nas_Prog/${PACKAGE}"
-INSTALL_DIR="${PKG_DIR}/${DNAME}"
-PID_FILE="/var/run/hassio.pid"
 CONTAINER_NAME="hassio_supervisor"
 
 start_daemon ()
