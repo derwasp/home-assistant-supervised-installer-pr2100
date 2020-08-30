@@ -119,12 +119,12 @@ case $ARCH in
         HASSIO_DOCKER="$DOCKER_REPO/aarch64-hassio-supervisor"
     ;;
     *)
-        error "$ARCH unknown!"
+        error "$ARCH unknown"
     ;;
 esac
 
 if [[ ! "intel-nuc odroid-c2 odroid-n2 odroid-xu qemuarm qemuarm-64 qemux86 qemux86-64 raspberrypi raspberrypi2 raspberrypi3 raspberrypi4 raspberrypi3-64 raspberrypi4-64 tinker" = *"${MACHINE}"* ]]; then
-    error "Unknown machine type ${MACHINE}!"
+    error "Unknown machine type ${MACHINE}"
 fi
 
 ### Main
@@ -149,29 +149,29 @@ EOF
 
 ##
 # Pull supervisor image
-echo "[Info] Install supervisor Docker container"
+info "Install supervisor Docker container"
 docker pull "$HASSIO_DOCKER:$HASSIO_VERSION" > /dev/null
 docker tag "$HASSIO_DOCKER:$HASSIO_VERSION" "$HASSIO_DOCKER:latest" > /dev/null
 
 ##
 # Install Hass.io Supervisor
-echo "[Info] Install supervisor startup scripts"
+info "Install supervisor startup scripts"
 curl -sL ${URL_BIN_HASSIO} > "/opt/sbin/hassio-supervisor"
 curl -sL ${URL_SERVICE_HASSIO} > "${SYSCONFDIR}/init.d/S99hassio.sh"
 
 sed -i "s,%%HASSIO_CONFIG%%,${CONFIG},g" /opt/sbin/hassio-supervisor
 sed -i -e "s,%%DOCKER_BINARY%%,${DOCKER_BINARY},g" \
-       -e "s,%%HASSIO_BINARY%%,${PREFIX}/sbin/hassio-supervisor,g" \
+       -e "s,%%HASSIO_BINARY%%,/opt/sbin/hassio-supervisor,g" \
        "${SYSCONFDIR}/init.d/S99hassio.sh"
 
 chmod a+x "/opt/sbin/hassio-supervisor"
 chmod a+x "${SYSCONFDIR}/init.d/S99hassio.sh"
 
-echo "[Info] Run Hass.io"
+info "Run Hass.io"
 command ${SYSCONFDIR}/init.d/S99hassio.sh start
 
 ##
 # Setup CLI
-echo "[Info] Install cli 'ha'"
+info "Install cli 'ha'"
 curl -sL ${URL_HA} > "/opt/sbin/ha"
 chmod a+x "/opt/sbin/ha"
