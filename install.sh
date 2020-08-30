@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
+function info { echo -e "[Info] $*"; }
 function error { echo -e "[Error] $*"; exit 1; }
 function warn  { echo -e "[Warning] $*"; }
 
 ARCH=$(uname -m)
 DOCKER_BINARY=/sbin/docker
 DOCKER_REPO=homeassistant
+DOCKER_DAEMON_CONFIG=/etc/docker/daemon.json
 URL_VERSION="https://version.home-assistant.io/stable.json"
 URL_HA="https://raw.githubusercontent.com/home-assistant/supervised-installer/master/files/ha"
 URL_BIN_HASSIO="https://raw.githubusercontent.com/derwasp/home-assistant-supervised-installer-pr2100/master/hassio-supervisor"
@@ -18,6 +20,42 @@ command -v jq > /dev/null 2>&1 || error "Please install jq first"
 command -v curl > /dev/null 2>&1 || error "Please install curl first"
 command -v avahi-daemon > /dev/null 2>&1 || error "Please install avahi first"
 command -v dbus-daemon > /dev/null 2>&1 || error "Please install dbus first"
+
+# Define the path for the docker package folder, as I don't know how to get it
+APKG_PATH="/mnt/HD/HD_a2/Nas_Prog/docker"
+
+# Detect wrong docker logger config
+if [ ! -f "$DOCKER_DAEMON_CONFIG" ]; then
+  # Write default configuration
+  info "Creating default docker deamon configuration $DOCKER_DAEMON_CONFIG"
+  cat > "$DOCKER_DAEMON_CONFIG" <<- EOF
+    {
+        "log-driver": "journald",
+        "storage-driver": "overlay2"
+    }
+EOF
+  # Restart Docker service
+  info "Restarting docker service"
+  "${APKG_PATH}/daemon.sh" stop
+  sleep 3
+  "${APKG_PATH}/daemon.sh" start
+else
+  STORRAGE_DRIVER=$(docker info -f "{{json .}}" | jq -r -e .Driver)
+  LOGGING_DRIVER=$(docker info -f "{{json .}}" | jq -r -e .LoggingDriver)
+  if [[ "$STORRAGE_DRIVER" != "overlay2" ]]; then
+    warn "Docker is using $STORRAGE_DRIVER and not 'overlay2' as the storrage driver, this is not supported."
+  fi
+  if [[ "$LOGGING_DRIVER"  != "journald" ]]; then
+    warn "Docker is using $LOGGING_DRIVER and not 'journald' as the logging driver, this is not supported."
+  fi
+fi
+
+# Check dmesg access
+if [[ "$(sysctl --values kernel.dmesg_restrict)" != "0" ]]; then
+    info "Fix kernel dmesg restriction"
+    echo 0 > /proc/sys/kernel/dmesg_restrict
+    echo "kernel.dmesg_restrict=0" >> /etc/sysctl.conf
+fi
 
 # Parse command line parameters
 while [[ $# -gt 0 ]]; do
@@ -56,43 +94,34 @@ CONFIG=$SYSCONFDIR/hassio.json
 case $ARCH in
     "i386" | "i686")
         MACHINE=${MACHINE:=qemux86}
-        HOMEASSISTANT_DOCKER="$DOCKER_REPO/$MACHINE-homeassistant"
         HASSIO_DOCKER="$DOCKER_REPO/i386-hassio-supervisor"
     ;;
     "x86_64")
         MACHINE=${MACHINE:=qemux86-64}
-        HOMEASSISTANT_DOCKER="$DOCKER_REPO/$MACHINE-homeassistant"
         HASSIO_DOCKER="$DOCKER_REPO/amd64-hassio-supervisor"
     ;;
     "arm" |"armv6l")
         if [ -z $MACHINE ]; then
             error "Please set machine for $ARCH"
         fi
-        HOMEASSISTANT_DOCKER="$DOCKER_REPO/$MACHINE-homeassistant"
         HASSIO_DOCKER="$DOCKER_REPO/armhf-hassio-supervisor"
     ;;
     "armv7l")
         if [ -z $MACHINE ]; then
             error "Please set machine for $ARCH"
         fi
-        HOMEASSISTANT_DOCKER="$DOCKER_REPO/$MACHINE-homeassistant"
         HASSIO_DOCKER="$DOCKER_REPO/armv7-hassio-supervisor"
     ;;
     "aarch64")
         if [ -z $MACHINE ]; then
             error "Please set machine for $ARCH"
         fi
-        HOMEASSISTANT_DOCKER="$DOCKER_REPO/$MACHINE-homeassistant"
         HASSIO_DOCKER="$DOCKER_REPO/aarch64-hassio-supervisor"
     ;;
     *)
         error "$ARCH unknown!"
     ;;
 esac
-
-if [ -z "${HOMEASSISTANT_DOCKER}" ]; then
-    error "Found no Home Assistant Docker images for this host!"
-fi
 
 if [[ ! "intel-nuc odroid-c2 odroid-n2 odroid-xu qemuarm qemuarm-64 qemux86 qemux86-64 raspberrypi raspberrypi2 raspberrypi3 raspberrypi4 raspberrypi3-64 raspberrypi4-64 tinker" = *"${MACHINE}"* ]]; then
     error "Unknown machine type ${MACHINE}!"
